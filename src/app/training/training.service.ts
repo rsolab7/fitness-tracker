@@ -10,7 +10,8 @@ export class TrainingService {
   finishedExercisesChanged = new Subject<Exercise[]>();
   private availableExercise: Exercise[] = [];
   private runningExercise: Exercise;
-  // private finishedExercises: Exercise[] = [];
+  private exercisesRetrieved: Exercise;
+  private finishedExercises: Exercise[] = [];
 
   constructor(private db: AngularFirestore) {}
 
@@ -68,20 +69,50 @@ export class TrainingService {
       return {...this.runningExercise};
     }
 
-    fetchAllExercises() {
-      // slice is used to get a new copy of array
-      this.db.collection('finishedExercises')
-      .valueChanges()
-      .subscribe((exercises: Exercise[]) => {
-        // replace finishEx array with db array
-        // this.finishedExercises = exercises;
-        // Pass the data of fetchEx to all subscribers
-        this.finishedExercisesChanged.next(exercises);
-      });
-    }
+    // fetchAllExercises() {
+    //   // slice is used to get a new copy of array
+    //   this.db.collection('finishedExercises')
+    //   .valueChanges()
+    //   .subscribe((exercises: Exercise[]) => {
+    //     // replace finishEx array with db array
+    //     // this.finishedExercises = exercises;
+    //     // Pass the data of fetchEx to all subscribers
+    //     this.finishedExercisesChanged.next(exercises);
+    //   });
+    // }
 
+    fetchAllExercises() {
+      this.db
+    .collection('finishedExercises')
+    .snapshotChanges()
+    .map(docArray => {
+      return  docArray.map(doc => {
+        return {
+          id: doc.payload.doc.id,
+          name: doc.payload.doc.data().name,
+          duration: doc.payload.doc.data().duration,
+          calories: doc.payload.doc.data().calories,
+          date: doc.payload.doc.data().date,
+          state: doc.payload.doc.data().state
+        };
+      });
+    })
+    .subscribe((exercises: Exercise[]) => {
+      this.finishedExercises = exercises;
+      this.finishedExercisesChanged.next([...this.finishedExercises]);
+    });
+    }
     // Add finished ex to the firebase db
     private addDataToDatabase(exercise: Exercise) {
       this.db.collection('finishedExercises').add(exercise);
     }
+
+    deleteExercisesFromDataBase(exercise: Exercise[], len: number) {
+      // this.db.doc('finishedExercises/' + exercises[0].id).delete();
+      for (let i = 0; i < len; i++) {
+        this.db.doc('finishedExercises/' + exercise[i].id).delete();
+      }
+
+    }
+
 }
