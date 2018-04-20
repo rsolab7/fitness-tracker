@@ -2,6 +2,9 @@ import { Exercise } from './exercise.model';
 import { Subject } from 'rxjs/Subject';
 import { AngularFirestore } from 'angularfire2/firestore';
 import { Injectable } from '@angular/core';
+// tslint:disable-next-line:import-blacklist
+import { Subscription} from 'rxjs';
+import { UIService } from '../shared/ui-service';
 
 @Injectable()
 export class TrainingService {
@@ -12,11 +15,14 @@ export class TrainingService {
   private runningExercise: Exercise;
   private exercisesRetrieved: Exercise;
   private finishedExercises: Exercise[] = [];
+  private fbSubscriptions: Subscription[] = [];
 
-  constructor(private db: AngularFirestore) {}
+
+  constructor(private db: AngularFirestore, private uiService: UIService) {}
 
   fetchAvailableExercise() {
-    this.db
+    this.uiService.loadingStateChanged.next(true);
+    this.fbSubscriptions.push(this.db
     .collection('availableExercises')
     .snapshotChanges()
     .map(docArray => {
@@ -32,7 +38,12 @@ export class TrainingService {
     .subscribe((exercises: Exercise[]) => {
       this.availableExercise = exercises;
       this.exercisesChanges.next([...this.availableExercise]);
-    });
+      this.uiService.loadingStateChanged.next(false);
+    }, error => {
+      this.uiService.loadingStateChanged.next(false);
+      this.uiService.showSnackBar('Fail to connect to database, Please try again', null, 3000);
+      this.exercisesChanges.next(null);
+    }));
   }
 
   startExercises(selectedId: string) {
@@ -68,7 +79,7 @@ export class TrainingService {
     getRunningExercise() {
       return {...this.runningExercise};
     }
-
+    // Use ValueChanges() to retrieve just the data of the object
     // fetchAllExercises() {
     //   // slice is used to get a new copy of array
     //   this.db.collection('finishedExercises')
@@ -81,8 +92,10 @@ export class TrainingService {
     //   });
     // }
 
+    // Using SnapshotChanges() in order to retrieve the id as well as the data of the object
     fetchAllExercises() {
-      this.db
+    this.uiService.loadingStateChanged.next(true);
+    this.fbSubscriptions.push(this.db
     .collection('finishedExercises')
     .snapshotChanges()
     .map(docArray => {
@@ -98,10 +111,20 @@ export class TrainingService {
       });
     })
     .subscribe((exercises: Exercise[]) => {
+      this.uiService.loadingStateChanged.next(false);
       this.finishedExercises = exercises;
       this.finishedExercisesChanged.next([...this.finishedExercises]);
-    });
+    }, error => {
+      this.uiService.loadingStateChanged.next(false);
+      this.uiService.showSnackBar('Fail to connect to database, Please try again', null, 3000);
     }
+    ));
+    }
+
+    cancelSubscriptions() {
+      this.fbSubscriptions.forEach(sub => sub.unsubscribe());
+    }
+
     // Add finished ex to the firebase db
     private addDataToDatabase(exercise: Exercise) {
       this.db.collection('finishedExercises').add(exercise);

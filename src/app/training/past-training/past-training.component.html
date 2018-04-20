@@ -1,11 +1,14 @@
+<div *ngIf="!isLoading">
+
+
 <div fxLayoutAlign = "center center">
 <mat-form-field width = "40%">
+  <button mat-raised-button color="accent"  [disabled] = "selection.selected.length == 0" class="DeleteButton" (click) = "onDeletePressed()" > Delete </button>
   <!-->$event encloses the event emitted and allows to access the target and access the value <-->
   <input matInput type="text" (keyup)="doFilter($event.target.value)" placeholder="Filter">
 </mat-form-field>
 </div>
 <mat-table [dataSource] = "dataSource" matSort>
-
 <ng-container matColumnDef="select">
   <mat-header-cell *matHeaderCellDef>
     <mat-checkbox (change)="$event ? masterToggle() : null"
@@ -55,5 +58,9 @@
   [pageSizeOptions]="[5, 10, 20]"
   [showFirstLastButtons]="true">
 </mat-paginator>
-
-<button mat-raised-button color="accent"  (click) = "onDeletePressed()">Delete</button>
+<button mat-raised-button color="accent"  [disabled] = "selection.selected.length == 0" class="DeleteButton" (click) = "onDeletePressed()" > Delete </button>
+<!--<button mat-raised-button color="accent"  *ngIf="selection.selected.length != 0" class="DeleteButton" (click) = "onDeletePressed()"> Delete </button>-->
+</div>
+<div class="spinner" fxLayoutAlign = "center center" *ngIf="isLoading">
+<mat-spinner></mat-spinner>
+</div>

@@ -3,8 +3,10 @@ import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy } from '@angular
 import { MatTableDataSource, MatSort, MatPaginator } from '@angular/material';
 import { Exercise } from '../exercise.model';
 import { TrainingService } from '../training.service';
+// tslint:disable-next-line:import-blacklist
 import { Subscription } from 'rxjs';
 import { SelectionModel} from '@angular/cdk/collections';
+import { UIService } from '../../shared/ui-service';
 
 @Component({
   selector: 'app-past-training',
@@ -12,12 +14,18 @@ import { SelectionModel} from '@angular/cdk/collections';
   styleUrls: ['./past-training.component.css']
 })
 export class PastTrainingComponent implements OnInit, AfterViewInit, OnDestroy {
+
+  isLoading = false;
+  private loadingSubs: Subscription;
   displayedColumns = ['select' , 'date', 'name', 'duration', 'calories', 'state'];
   dataSource = new MatTableDataSource<Exercise>();
   private exChangedSubscription: Subscription;
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
   selection = new SelectionModel<Exercise>(true, []);
+
+  constructor(private trainingService: TrainingService, private uiService: UIService) { }
+
   /** Whether the number of selected elements matches the total number of rows. */
   isAllSelected() {
     const numSelected = this.selection.selected.length;
@@ -35,7 +43,6 @@ export class PastTrainingComponent implements OnInit, AfterViewInit, OnDestroy {
   onDeletePressed() {
     this.trainingService.deleteExercisesFromDataBase({...this.selection.selected}, this.selection.selected.length);
   }
-  constructor(private trainingService: TrainingService) { }
 
   ngOnInit() {
     this.exChangedSubscription =  this.trainingService.finishedExercisesChanged.subscribe(
@@ -43,6 +50,10 @@ export class PastTrainingComponent implements OnInit, AfterViewInit, OnDestroy {
         this.dataSource.data = exercises;
       });
       this.trainingService.fetchAllExercises();
+
+    this.loadingSubs = this.uiService.loadingStateChanged.subscribe(isLoading => {
+      this.isLoading = isLoading;
+    });
   }
 
   ngAfterViewInit() {
@@ -55,6 +66,11 @@ export class PastTrainingComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.exChangedSubscription.unsubscribe();
+    if (this.exChangedSubscription) {
+      this.exChangedSubscription.unsubscribe();
+    }
+    if (this.loadingSubs) {
+      this.loadingSubs.unsubscribe();
+    }
   }
 }

@@ -1,7 +1,7 @@
 <section class ="loginForm">
   <form fxLayout="column" fxLayoutAlign = "center center" fxLayoutGap = "10px" #f="ngForm" (ngSubmit) ="onSubmit(f)">
     <mat-form-field>
-      <input 
+      <input
       type="email"
       matInput
       placeholder="Enter your email"
@@ -15,7 +15,7 @@
     </mat-form-field>
 
     <mat-form-field>
-      <input 
+      <input
       type="password"
       matInput
       placeholder="Enter your password"
@@ -25,9 +25,7 @@
       #passwordInput = ngModel>
       <mat-error *ngIf="passwordInput.hasError('required')">Field must not be empty</mat-error>
     </mat-form-field>
-
-    <button mat-raised-button color = "primary" [disabled] = "f.invalid">Submit</button>
+    <button *ngIf="!isLoading" mat-raised-button color = "primary" [disabled] = "f.invalid">Submit</button>
+    <mat-spinner *ngIf="isLoading"></mat-spinner>
   </form>
-
-
 </section>

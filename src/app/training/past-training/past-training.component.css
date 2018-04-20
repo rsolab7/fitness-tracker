@@ -6,3 +6,12 @@ mat-table {
 .mat-column-select {
   overflow: visible;
 }
+
+.DeleteButton{
+  margin-left: 10px;
+}
+
+.spinner{
+  padding: 10px;
+  margin-top: 100px;
+}
