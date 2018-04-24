@@ -33,13 +33,12 @@
         [max]="maxDate"
         ngModel name = "birthdate"
         required>
-
       <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
     </mat-form-field>
     <mat-checkbox ngModel name = "agree" required labelPosition = "before" color ="primary"><a href="https://mockflow.com/terms/">Agree to Terms and Conditons</a></mat-checkbox>
 
-    <button *ngIf="!isLoading" mat-raised-button color = "primary" [disabled] = "f.invalid">Submit</button>
-    <mat-spinner *ngIf="isLoading"></mat-spinner>
+    <button *ngIf="!(isLoading$ | async)" mat-raised-button color = "primary" [disabled] = "f.invalid">Submit</button>
+    <mat-spinner *ngIf="(isLoading$ | async)"></mat-spinner>
   </form>
 </section>

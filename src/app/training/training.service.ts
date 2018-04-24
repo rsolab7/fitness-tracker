@@ -2,9 +2,15 @@ import { Exercise } from './exercise.model';
 import { Subject } from 'rxjs/Subject';
 import { AngularFirestore } from 'angularfire2/firestore';
 import { Injectable } from '@angular/core';
+import {Store} from '@ngrx/store';
 // tslint:disable-next-line:import-blacklist
 import { Subscription} from 'rxjs';
 import { UIService } from '../shared/ui-service';
+import * as UI from '../shared/ui.actions';
+import * as fromRoot from '../app.reducer';
+import * as fromTraining from './training.reducer';
+import * as Training from './training.actions';
+
 
 @Injectable()
 export class TrainingService {
@@ -18,10 +24,11 @@ export class TrainingService {
   private fbSubscriptions: Subscription[] = [];
 
 
-  constructor(private db: AngularFirestore, private uiService: UIService) {}
+  constructor(private db: AngularFirestore, private uiService: UIService, private store: Store<fromRoot.State>)  { }
 
   fetchAvailableExercise() {
-    this.uiService.loadingStateChanged.next(true);
+    this.store.dispatch(new UI.StartLoading());
+    // this.uiService.loadingStateChanged.next(true);
     this.fbSubscriptions.push(this.db
     .collection('availableExercises')
     .snapshotChanges()
@@ -36,11 +43,14 @@ export class TrainingService {
       });
     })
     .subscribe((exercises: Exercise[]) => {
-      this.availableExercise = exercises;
-      this.exercisesChanges.next([...this.availableExercise]);
-      this.uiService.loadingStateChanged.next(false);
+      // this.availableExercise = exercises;
+      // this.exercisesChanges.next([...this.availableExercise]);
+      this.store.dispatch(new Training.SetAvailableTrainings(exercises));
+      // this.uiService.loadingStateChanged.next(false);
+      this.store.dispatch(new UI.StopLoading());
     }, error => {
-      this.uiService.loadingStateChanged.next(false);
+      // this.uiService.loadingStateChanged.next(false);
+      this.store.dispatch(new UI.StopLoading());
       this.uiService.showSnackBar('Fail to connect to database, Please try again', null, 3000);
       this.exercisesChanges.next(null);
     }));
@@ -94,7 +104,8 @@ export class TrainingService {
 
     // Using SnapshotChanges() in order to retrieve the id as well as the data of the object
     fetchAllExercises() {
-    this.uiService.loadingStateChanged.next(true);
+    this.store.dispatch(new UI.StartLoading());
+    // this.uiService.loadingStateChanged.next(true);
     this.fbSubscriptions.push(this.db
     .collection('finishedExercises')
     .snapshotChanges()
@@ -111,11 +122,13 @@ export class TrainingService {
       });
     })
     .subscribe((exercises: Exercise[]) => {
-      this.uiService.loadingStateChanged.next(false);
+      // this.store.dispatch(new UI.StopLoading());
+      // this.uiService.loadingStateChanged.next(false);
       this.finishedExercises = exercises;
       this.finishedExercisesChanged.next([...this.finishedExercises]);
     }, error => {
-      this.uiService.loadingStateChanged.next(false);
+      this.store.dispatch(new UI.StopLoading());
+      // this.uiService.loadingStateChanged.next(false);
       this.uiService.showSnackBar('Fail to connect to database, Please try again', null, 3000);
     }
     ));

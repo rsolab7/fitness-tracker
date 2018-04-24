@@ -5,7 +5,9 @@ import { NgForm } from '@angular/forms';
 // tslint:disable-next-line:import-blacklist
 import { Observable, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { Store } from '@ngrx/store';
 import { UIService } from '../../shared/ui-service';
+import * as fromRoot from '../../app.reducer';
 
 @Component({
   selector: 'app-new-training',
@@ -16,21 +18,22 @@ export class NewTrainingComponent implements OnInit, OnDestroy {
   // In order to inject a service first, it needs to be provided in the app moule
   // Then add the service in the constructor
   exercises: Exercise[];
+  isLoading$: Observable<boolean>;
   exerciseSubscription: Subscription;
+  // private loadingSubs: Subscription;
 
-  isLoading = false;
-  private loadingSubs: Subscription;
 
-  constructor(private trainingService: TrainingService, private uiService: UIService) { }
+  constructor(private trainingService: TrainingService, private uiService: UIService, private store: Store <{ui: fromRoot.State}>) { }
 
   ngOnInit() {
     this.exerciseSubscription = this.trainingService.exercisesChanges.subscribe(exercises => (
          this.exercises = exercises
       ));
     this.fetchExercises();
-    this.loadingSubs = this.uiService.loadingStateChanged.subscribe(isLoading => {
-      this.isLoading = isLoading;
-    });
+    this.isLoading$ = this.store.select(fromRoot.getIsLoading);
+    // this.loadingSubs = this.uiService.loadingStateChanged.subscribe(isLoading => {
+    //   this.isLoading = isLoading;
+    // });
   }
   fetchExercises() {
     this.trainingService.fetchAvailableExercise();
@@ -41,12 +44,8 @@ export class NewTrainingComponent implements OnInit, OnDestroy {
 }
 
 ngOnDestroy() {
-  if (this.exerciseSubscription){
+  if (this.exerciseSubscription) {
     this.exerciseSubscription.unsubscribe();
-  }
-
-  if (this.loadingSubs) {
-    this.loadingSubs.unsubscribe();
   }
 }
 

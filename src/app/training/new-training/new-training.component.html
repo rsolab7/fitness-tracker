@@ -3,7 +3,7 @@
     <mat-card fxFlex.xs = "100%" fxFlex="400px">
       <mat-card-title fxLayoutAlign = "center">Lets get started!</mat-card-title>
       <mat-card-content fxLayoutAlign = "center" *ngIf="!isLoading">
-        <mat-form-field *ngIf="!isLoading && exercises">
+        <mat-form-field *ngIf="!(isLoading$ | async ) && exercises">
           <mat-select  placeholder = "Exercise List" ngModel name ="exercise" required >
             <mat-option *ngFor="let exercise of exercises" [value] = "exercise.id" >
               {{ exercise.name }}
@@ -11,11 +11,11 @@
           </mat-select>
         </mat-form-field>
       </mat-card-content>
-      <mat-card-actions fxLayoutAlign = "center" *ngIf="!isLoading">
+      <mat-card-actions fxLayoutAlign = "center" *ngIf="!(isLoading$ | async)">
         <button mat-button type="submit" *ngIf="exercises" color = "primary"  [disabled] = "f.invalid">Start</button>
         <button mat-button color = "primary" *ngIf="!exercises" (click)="fetchExercises()">Reload</button>
       </mat-card-actions>
-      <mat-card-content fxLayoutAlign = "center" *ngIf="isLoading">
+      <mat-card-content fxLayoutAlign = "center" *ngIf="isLoading$ | async">
         <mat-spinner></mat-spinner>
       </mat-card-content>
     </mat-card>

@@ -4,9 +4,11 @@ import { MatTableDataSource, MatSort, MatPaginator } from '@angular/material';
 import { Exercise } from '../exercise.model';
 import { TrainingService } from '../training.service';
 // tslint:disable-next-line:import-blacklist
-import { Subscription } from 'rxjs';
+import { Subscription, Observable } from 'rxjs';
 import { SelectionModel} from '@angular/cdk/collections';
 import { UIService } from '../../shared/ui-service';
+import { Store } from '@ngrx/store';
+import * as fromRoot from '../../app.reducer';
 
 @Component({
   selector: 'app-past-training',
@@ -15,7 +17,7 @@ import { UIService } from '../../shared/ui-service';
 })
 export class PastTrainingComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  isLoading = false;
+  isLoading$: Observable<boolean>;
   private loadingSubs: Subscription;
   displayedColumns = ['select' , 'date', 'name', 'duration', 'calories', 'state'];
   dataSource = new MatTableDataSource<Exercise>();
@@ -24,7 +26,7 @@ export class PastTrainingComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(MatPaginator) paginator: MatPaginator;
   selection = new SelectionModel<Exercise>(true, []);
 
-  constructor(private trainingService: TrainingService, private uiService: UIService) { }
+  constructor(private trainingService: TrainingService, private uiService: UIService, private store: Store <{ui: fromRoot.State}>) { }
 
   /** Whether the number of selected elements matches the total number of rows. */
   isAllSelected() {
@@ -51,9 +53,10 @@ export class PastTrainingComponent implements OnInit, AfterViewInit, OnDestroy {
       });
       this.trainingService.fetchAllExercises();
 
-    this.loadingSubs = this.uiService.loadingStateChanged.subscribe(isLoading => {
-      this.isLoading = isLoading;
-    });
+      this.isLoading$ = this.store.select(fromRoot.getIsLoading);
+    // this.loadingSubs = this.uiService.loadingStateChanged.subscribe(isLoading => {
+    //   this.isLoading = isLoading;
+    // });
   }
 
   ngAfterViewInit() {
@@ -69,8 +72,8 @@ export class PastTrainingComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.exChangedSubscription) {
       this.exChangedSubscription.unsubscribe();
     }
-    if (this.loadingSubs) {
-      this.loadingSubs.unsubscribe();
-    }
+    // if (this.loadingSubs) {
+    //   this.loadingSubs.unsubscribe();
+    // }
   }
 }
